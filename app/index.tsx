@@ -2,106 +2,50 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 
-type Role = 'citizen' | 'staff' | 'admin';
+type Role = 'staff' | 'admin';
 
-const onboardingSlides = [
-  {
-    image: require('@/assets/images/onboarding-welcome.png'),
-    eyebrow: 'WELCOME TO CIVICBALLOT',
-    title: 'Your voice starts here.',
-    copy: 'A simple, transparent way to participate in your community election.',
-  },
-  {
-    image: require('@/assets/images/onboarding-community.png'),
-    eyebrow: 'CONNECTED COMMUNITIES',
-    title: 'Every community matters.',
-    copy: 'Find your ward and polling unit, then take part with confidence.',
-  },
-  {
-    image: require('@/assets/images/onboarding-teamwork.png'),
-    eyebrow: 'BUILT TOGETHER',
-    title: 'Better elections, together.',
-    copy: 'Citizens, election staff, and administrators each have a clear role.',
-  },
-  {
-    image: require('@/assets/images/onboarding-voting.png'),
-    eyebrow: 'MADE FOR EVERYONE',
-    title: 'Voting should feel clear.',
-    copy: 'Follow a focused journey from voter verification to ballot submission.',
-  },
-  {
-    image: require('@/assets/images/onboarding-ballot.png'),
-    eyebrow: 'YOUR VOTE MATTERS',
-    title: 'Make an informed choice.',
-    copy: 'Your ballot is private, while official results remain transparent and accountable.',
-  },
-];
-
-const roles: Array<{
-  id: Role;
-  title: string;
-  description: string;
-  icon: keyof typeof Feather.glyphMap;
-}> = [
-  {
-    id: 'citizen',
-    title: 'I am a voter',
-    description: 'Verify your voter registration and cast your ballot.',
-    icon: 'check-square',
-  },
-  {
-    id: 'staff',
-    title: 'I am election staff',
-    description: 'Report polling-unit activity and submit counted results.',
-    icon: 'clipboard',
-  },
-  {
-    id: 'admin',
-    title: 'I am an administrator',
-    description: 'Review reports, resolve issues, and approve final results.',
-    icon: 'shield',
-  },
-];
-
-export default function WelcomeScreen() {
+export default function AccessScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [role, setRole] = useState<Role>('citizen');
-  const [registrationId, setRegistrationId] = useState('');
+  const [role, setRole] = useState<Role>('staff');
+  const [busy, setBusy] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+
+  const onboardingSlides = [
+    { image: require('@/assets/images/onboarding-welcome.png'), eyebrow: 'WELCOME TO CIVICBALLOT', title: 'Your work starts here.', copy: 'A clear, accountable workspace for election staff and administrators.' },
+    { image: require('@/assets/images/onboarding-community.png'), eyebrow: 'CONNECTED COMMUNITIES', title: 'Every polling unit matters.', copy: 'Capture the unit exactly as it appears on the official paper result sheet.' },
+    { image: require('@/assets/images/onboarding-teamwork.png'), eyebrow: 'BUILT TOGETHER', title: 'Work with confidence.', copy: 'Staff submit counted results while administrators review the full picture.' },
+    { image: require('@/assets/images/onboarding-voting.png'), eyebrow: 'MADE FOR OFFICIALS', title: 'Results stay clear.', copy: 'Use numeric party counts and attach the signed result sheet as evidence.' },
+    { image: require('@/assets/images/onboarding-ballot.png'), eyebrow: 'ACCOUNTABILITY FIRST', title: 'Keep every detail.', copy: 'Each submission is recorded with its polling unit, staff ID, totals, and evidence.' },
+  ];
+
+  const continueToRole = () => {
+    setBusy(true);
+    setTimeout(() => {
+      setBusy(false);
+      router.push({ pathname: role === 'staff' ? '/staff' : '/admin', params: { staffId: role === 'staff' ? 'STF-DEMO01' : 'admin' } });
+    }, 250);
+  };
 
   if (onboardingStep < onboardingSlides.length) {
     const slide = onboardingSlides[onboardingStep];
-    const isLastSlide = onboardingStep === onboardingSlides.length - 1;
+    const isLast = onboardingStep === onboardingSlides.length - 1;
     return (
       <View style={[styles.onboardingScreen, { backgroundColor: colors.background }]}>
         <View style={[styles.onboardingTop, { paddingTop: insets.top + 18 }]}>
-          <View style={styles.brandRow}>
-            <View style={[styles.mark, { backgroundColor: colors.primary }]}>
-              <Feather name="check" size={20} color={colors.primaryForeground} />
-            </View>
-            <Text style={[styles.brand, { color: colors.foreground }]}>CivicBallot</Text>
-          </View>
-          <Pressable
-            testID="skip-onboarding"
-            onPress={() => setOnboardingStep(onboardingSlides.length)}
-            hitSlop={12}
-          >
-            <Text style={[styles.skip, { color: colors.mutedForeground }]}>Skip</Text>
-          </Pressable>
+          <View style={styles.brandRow}><View style={[styles.mark, { backgroundColor: colors.primary }]}><Feather name="check" size={19} color={colors.primaryForeground} /></View><Text style={[styles.brand, { color: colors.foreground }]}>CivicBallot</Text></View>
+          <Pressable onPress={() => setOnboardingStep(onboardingSlides.length)} hitSlop={12}><Text style={[styles.skip, { color: colors.mutedForeground }]}>Skip</Text></Pressable>
         </View>
         <View style={styles.onboardingBody}>
           <Image source={slide.image} style={styles.onboardingImage} resizeMode="contain" />
@@ -110,213 +54,87 @@ export default function WelcomeScreen() {
           <Text style={[styles.onboardingCopy, { color: colors.mutedForeground }]}>{slide.copy}</Text>
         </View>
         <View style={[styles.onboardingBottom, { paddingBottom: insets.bottom + 22 }]}>
-          <View style={styles.progressRow}>
-            {onboardingSlides.map((item, index) => (
-              <View
-                key={item.eyebrow}
-                style={[
-                  styles.progressDot,
-                  { backgroundColor: index === onboardingStep ? colors.primary : colors.border },
-                  index === onboardingStep ? styles.progressDotActive : null,
-                ]}
-              />
-            ))}
-          </View>
-          <Pressable
-            testID="onboarding-next"
-            onPress={() => setOnboardingStep((current) => current + 1)}
-            style={({ pressed }) => [
-              styles.continueButton,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.82 : 1 },
-            ]}
-          >
-            <Text style={styles.continueText}>{isLastSlide ? 'Get started' : 'Next'}</Text>
-            <Feather name="arrow-right" size={19} color={colors.primaryForeground} />
-          </Pressable>
+          <View style={styles.progressRow}>{onboardingSlides.map((item, index) => <View key={item.eyebrow} style={[styles.progressDot, { backgroundColor: index === onboardingStep ? colors.primary : colors.border }, index === onboardingStep ? styles.progressDotActive : null]} />)}</View>
+          <Pressable onPress={() => setOnboardingStep((current) => current + 1)} style={({ pressed }) => [styles.button, { backgroundColor: colors.primary, opacity: pressed ? 0.82 : 1 }]}><Text style={styles.buttonText}>{isLast ? 'Get started' : 'Next'}</Text><Feather name="arrow-right" size={19} color={colors.primaryForeground} /></Pressable>
         </View>
       </View>
     );
   }
 
-  const handleContinue = () => {
-    if (role === 'citizen') {
-      router.push({
-        pathname: '/vote',
-        params: { registrationId: registrationId.trim() || 'Demo voter' },
-      });
-      return;
-    }
-    router.push({ pathname: '/role-preview', params: { role } });
-  };
-
   return (
-    <KeyboardAvoidingView
-      style={[styles.screen, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.brandRow}>
-          <View style={[styles.mark, { backgroundColor: colors.primary }]}>
-            <Feather name="check" size={20} color={colors.primaryForeground} />
-          </View>
-          <Text style={[styles.brand, { color: colors.foreground }]}>
-            CivicBallot
-          </Text>
+    <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 26, paddingBottom: insets.bottom + 20 }]}>
+      <View style={styles.brandRow}>
+        <View style={[styles.mark, { backgroundColor: colors.primary }]}>
+          <Feather name="check" size={19} color={colors.primaryForeground} />
         </View>
-
-        <View style={styles.hero}>
-          <Text style={[styles.eyebrow, { color: colors.primary }]}>
-            YOUR VOICE COUNTS
-          </Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            A simple, transparent way to vote.
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Select your access type to get started. Your ballot choice stays
-            private.
-          </Text>
+        <View>
+          <Text style={[styles.brand, { color: colors.foreground }]}>CivicBallot</Text>
+          <Text style={[styles.brandSub, { color: colors.mutedForeground }]}>Official results workspace</Text>
         </View>
+      </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.foreground }]}>
-            Choose how you are accessing CivicBallot
-          </Text>
-          <View style={styles.roleList}>
-            {roles.map((item) => {
-              const selected = role === item.id;
-              return (
-                <Pressable
-                  key={item.id}
-                  testID={`role-${item.id}`}
-                  onPress={() => setRole(item.id)}
-                  style={({ pressed }) => [
-                    styles.roleCard,
-                    {
-                      backgroundColor: selected
-                        ? colors.secondary
-                        : colors.card,
-                      borderColor: selected ? colors.primary : colors.border,
-                      opacity: pressed ? 0.82 : 1,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.roleIcon,
-                      {
-                        backgroundColor: selected
-                          ? colors.primary
-                          : colors.muted,
-                      },
-                    ]}
-                  >
-                    <Feather
-                      name={item.icon}
-                      size={19}
-                      color={
-                        selected
-                          ? colors.primaryForeground
-                          : colors.mutedForeground
-                      }
-                    />
-                  </View>
-                  <View style={styles.roleCopy}>
-                    <Text
-                      style={[
-                        styles.roleTitle,
-                        { color: colors.foreground },
-                      ]}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.roleDescription,
-                        { color: colors.mutedForeground },
-                      ]}
-                    >
-                      {item.description}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.radio,
-                      { borderColor: selected ? colors.primary : colors.border },
-                    ]}
-                  >
-                    {selected ? (
-                      <View
-                        style={[
-                          styles.radioDot,
-                          { backgroundColor: colors.primary },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+      <View style={styles.hero}>
+        <Text style={[styles.eyebrow, { color: colors.primary }]}>AUTHORIZED ACCESS</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>Keep every result accountable.</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          Sign in as election staff to submit a polling-unit result, or as an administrator to review submissions.
+        </Text>
+      </View>
 
-        {role === 'citizen' ? (
-          <View style={styles.inputSection}>
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>
-              Voter registration number
-            </Text>
-            <TextInput
-              testID="registration-id"
-              value={registrationId}
-              onChangeText={setRegistrationId}
-              placeholder="Enter your voter ID"
-              placeholderTextColor={colors.mutedForeground}
-              autoCapitalize="characters"
-              style={[
-                styles.input,
+      <Text style={[styles.label, { color: colors.foreground }]}>I am signing in as</Text>
+      <View style={styles.roleRow}>
+        {(['staff', 'admin'] as Role[]).map((item) => {
+          const selected = item === role;
+          return (
+            <Pressable
+              key={item}
+              testID={`role-${item}`}
+              onPress={() => setRole(item)}
+              style={({ pressed }) => [
+                styles.roleCard,
                 {
-                  backgroundColor: colors.card,
-                  borderColor: colors.input,
-                  color: colors.foreground,
+                  borderColor: selected ? colors.primary : colors.border,
+                  backgroundColor: selected ? colors.secondary : colors.card,
+                  opacity: pressed ? 0.8 : 1,
                 },
               ]}
-            />
-            <View style={styles.helperRow}>
-              <Feather name="lock" size={13} color={colors.mutedForeground} />
-              <Text style={[styles.helper, { color: colors.mutedForeground }]}>
-                Only your registration number is needed to continue.
+            >
+              <Feather name={item === 'staff' ? 'clipboard' : 'shield'} size={22} color={selected ? colors.primary : colors.mutedForeground} />
+              <Text style={[styles.roleTitle, { color: selected ? colors.secondaryForeground : colors.foreground }]}>
+                {item === 'staff' ? 'Election staff' : 'Administrator'}
               </Text>
-            </View>
-          </View>
-        ) : null}
+              {selected ? <Feather name="check-circle" size={17} color={colors.primary} /> : null}
+            </Pressable>
+          );
+        })}
+      </View>
 
-        <Pressable
-          testID="continue-button"
-          onPress={handleContinue}
-          style={({ pressed }) => [
-            styles.continueButton,
-            { backgroundColor: colors.primary, opacity: pressed ? 0.82 : 1 },
-          ]}
-        >
-          <Text style={styles.continueText}>Continue</Text>
-          <Feather name="arrow-right" size={19} color={colors.primaryForeground} />
-        </Pressable>
+      <View style={[styles.formNotice, { backgroundColor: colors.secondary }]}>
+        <Feather name={role === 'staff' ? 'key' : 'shield'} size={18} color={colors.primary} />
+        <View style={styles.formNoticeCopy}>
+          <Text style={[styles.formNoticeTitle, { color: colors.secondaryForeground }]}>{role === 'staff' ? 'Staff login ID required' : 'Administrator access'}</Text>
+          <Text style={[styles.formNoticeText, { color: colors.mutedForeground }]}>{role === 'staff' ? 'Use the ID generated for you by an administrator.' : 'Admin access opens the results and staff management workspace.'}</Text>
+        </View>
+      </View>
 
-        <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-          CivicBallot prototype • Secure participation starts here
-        </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <Pressable
+        testID="continue-button"
+        onPress={continueToRole}
+        style={({ pressed }) => [styles.button, { backgroundColor: colors.primary, opacity: pressed ? 0.82 : 1 }]}
+      >
+        {busy ? <ActivityIndicator color={colors.primaryForeground} /> : <><Text style={styles.buttonText}>Continue securely</Text><Feather name="arrow-right" size={19} color={colors.primaryForeground} /></>}
+      </Pressable>
+
+      <View style={[styles.notice, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Feather name="lock" size={15} color={colors.primary} />
+        <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>Staff can only submit. Admins can review and approve.</Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, paddingHorizontal: 22 },
   onboardingScreen: { flex: 1, paddingHorizontal: 22 },
   onboardingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   skip: { fontFamily: 'Inter_500Medium', fontSize: 13 },
@@ -329,113 +147,24 @@ const styles = StyleSheet.create({
   progressRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginBottom: 18 },
   progressDot: { height: 6, width: 6, borderRadius: 3 },
   progressDotActive: { width: 24 },
-  screen: { flex: 1 },
-  content: { paddingHorizontal: 22 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  mark: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brand: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: -0.3 },
-  hero: { marginTop: 48, marginBottom: 34 },
-  eyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    letterSpacing: 1.4,
-    marginBottom: 12,
-  },
-  title: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 34,
-    lineHeight: 40,
-    letterSpacing: -1.2,
-    maxWidth: 350,
-  },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 15,
-    lineHeight: 23,
-    marginTop: 14,
-    maxWidth: 350,
-  },
-  section: { marginBottom: 24 },
-  sectionLabel: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  roleList: { gap: 10 },
-  roleCard: {
-    minHeight: 83,
-    borderWidth: 1,
-    borderRadius: 17,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  roleIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  roleCopy: { flex: 1, paddingRight: 6 },
-  roleTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 15 },
-  roleDescription: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 4,
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioDot: { width: 10, height: 10, borderRadius: 5 },
-  inputSection: { marginBottom: 22 },
-  input: {
-    height: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
-  },
-  helperRow: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-    marginTop: 9,
-  },
-  helper: { fontFamily: 'Inter_400Regular', fontSize: 12 },
-  continueButton: {
-    height: 56,
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 2,
-  },
-  continueText: {
-    color: '#ffffff',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
-  },
-  footer: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 20,
-  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  mark: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  brand: { fontFamily: 'Inter_700Bold', fontSize: 18 },
+  brandSub: { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2 },
+  hero: { marginTop: 58, marginBottom: 34 },
+  eyebrow: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.3, marginBottom: 12 },
+  title: { fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 40, letterSpacing: -1.1 },
+  subtitle: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23, marginTop: 14 },
+  label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, marginBottom: 11 },
+  roleRow: { gap: 10 },
+  roleCard: { minHeight: 60, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  roleTitle: { flex: 1, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  formNotice: { marginTop: 28, borderRadius: 16, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  formNoticeCopy: { flex: 1 },
+  formNoticeTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  formNoticeText: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: 4 },
+  button: { height: 56, borderRadius: 16, marginTop: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  buttonText: { color: '#ffffff', fontFamily: 'Inter_600SemiBold', fontSize: 16 },
+  notice: { borderWidth: 1, borderRadius: 14, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 17 },
+  noticeText: { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17 },
 });

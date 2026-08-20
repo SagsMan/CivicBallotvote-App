@@ -23,8 +23,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false, headerBackTitle: 'Back' }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="vote" />
-      <Stack.Screen name="role-preview" />
+      <Stack.Screen name="staff" />
+      <Stack.Screen name="admin" />
     </Stack>
   );
 }
