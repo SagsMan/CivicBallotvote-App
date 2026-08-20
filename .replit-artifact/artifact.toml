@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/"
+title = "Election Voting App"
+description = "A mobile election voting prototype with citizen, polling staff, and administrator experiences for secure ballot selection, polling-unit reporting, and result approval."
+version = "1.0.0"
+id = "artifacts/election-voting-app"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 25226
+
+[services.development]
+run = "pnpm --filter @workspace/election-voting-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/election-voting-app", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/election-voting-app", "run", "serve" ]
+
+[services.env]
+PORT = "25226"
+BASE_PATH = "/"
