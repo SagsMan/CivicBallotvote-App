@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Election Voting App",
-    "slug": "election-voting-app",
+    "name": "CivicBallot Staff Admin",
+    "slug": "civicballot",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/election-icon.png",
-    "scheme": "election-voting-app",
+    "icon": "./assets/images/icon.png",
+    "scheme": "civicballot",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/election-icon.png",
+      "image": "./assets/images/inec-splash.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,7 +20,16 @@
     "web": {
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": ["expo-router", "expo-font", "expo-web-browser"],
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

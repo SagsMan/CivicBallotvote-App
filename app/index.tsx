@@ -67,10 +67,7 @@ export default function AccessScreen() {
         <View style={[styles.mark, { backgroundColor: colors.primary }]}>
           <Feather name="check" size={19} color={colors.primaryForeground} />
         </View>
-        <View>
-          <Text style={[styles.brand, { color: colors.foreground }]}>CivicBallot</Text>
-          <Text style={[styles.brandSub, { color: colors.mutedForeground }]}>Official results workspace</Text>
-        </View>
+        <Text style={[styles.brand, { color: colors.foreground }]}>CivicBallot</Text>
       </View>
 
       <View style={styles.hero}>
@@ -150,7 +147,6 @@ const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   mark: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   brand: { fontFamily: 'Inter_700Bold', fontSize: 18 },
-  brandSub: { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2 },
   hero: { marginTop: 58, marginBottom: 34 },
   eyebrow: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.3, marginBottom: 12 },
   title: { fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 40, letterSpacing: -1.1 },

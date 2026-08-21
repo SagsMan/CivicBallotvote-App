@@ -1,7 +1,20 @@
 export type UserRole = 'staff' | 'admin';
 
+export const electionTypes = [
+  'Presidential',
+  'Governorship',
+  'Senatorial',
+  'House of Representatives',
+  'State House of Assembly',
+  'Chairmanship',
+  'Councillorship',
+] as const;
+
+export type ElectionType = (typeof electionTypes)[number];
+
 export type ResultSubmission = {
   id: string;
+  electionType: ElectionType;
   pollingUnit: string;
   apc: number;
   pdp: number;
@@ -10,7 +23,7 @@ export type ResultSubmission = {
   evidenceUri?: string;
   submittedBy: string;
   submittedAt: string;
-  status: 'submitted' | 'approved';
+  status: 'submitted' | 'approved' | 'rejected';
 };
 
 export type StaffAccount = {

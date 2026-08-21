@@ -1,12 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { saveSubmission } from '@/lib/store';
-import type { ResultSubmission } from '@/constants/types';
+import { getActiveElectionType, saveSubmission } from '@/lib/store';
+import { electionTypes, type ElectionType, type ResultSubmission } from '@/constants/types';
 
 const numberFields = [
   { key: 'apc', label: 'APC', hint: 'All Progressives Congress' },
@@ -22,8 +22,11 @@ export default function StaffScreen() {
   const [pollingUnit, setPollingUnit] = useState('');
   const [counts, setCounts] = useState<Record<(typeof numberFields)[number]['key'], string>>({ apc: '', pdp: '', adc: '', rejected: '' });
   const [evidenceUri, setEvidenceUri] = useState<string>();
+  const [electionType, setElectionType] = useState<ElectionType>('Senatorial');
+  const [showElectionTypes, setShowElectionTypes] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const total = useMemo(() => Object.values(counts).reduce((sum, value) => sum + (Number(value) || 0), 0), [counts]);
+  useEffect(() => { void getActiveElectionType().then(setElectionType); }, []);
 
   const chooseEvidence = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -40,6 +43,7 @@ export default function StaffScreen() {
     if (total === 0) return Alert.alert('Add vote counts', 'Enter at least one numeric count before submitting.');
     const submission: ResultSubmission = {
       id: `CB-${Date.now().toString().slice(-6)}`,
+      electionType,
       pollingUnit: pollingUnit.trim(),
       apc: Number(counts.apc) || 0,
       pdp: Number(counts.pdp) || 0,
@@ -80,6 +84,15 @@ export default function StaffScreen() {
       <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Match the paper result sheet exactly. The unit can include letters, numbers, slashes, or hyphens.</Text>
 
       <View style={styles.section}>
+        <Text style={[styles.label, { color: colors.foreground }]}>Election position</Text>
+        <Pressable onPress={() => setShowElectionTypes((value) => !value)} style={[styles.input, styles.select, { backgroundColor: colors.card, borderColor: colors.input }]}>
+          <Text style={{ color: colors.foreground, fontFamily: 'Inter_500Medium', fontSize: 15 }}>{electionType}</Text>
+          <Feather name={showElectionTypes ? 'chevron-up' : 'chevron-down'} size={18} color={colors.mutedForeground} />
+        </Pressable>
+        {showElectionTypes ? <View style={[styles.options, { backgroundColor: colors.card, borderColor: colors.border }]}>{electionTypes.map((type) => <Pressable key={type} onPress={() => { setElectionType(type); setShowElectionTypes(false); }} style={[styles.option, { borderBottomColor: colors.border }]}><Text style={{ color: colors.foreground, fontFamily: 'Inter_500Medium', fontSize: 14 }}>{type}</Text>{type === electionType ? <Feather name="check" size={16} color={colors.primary} /> : null}</Pressable>)}</View> : null}
+      </View>
+
+      <View style={styles.section}>
         <Text style={[styles.label, { color: colors.foreground }]}>Polling unit</Text>
         <TextInput testID="polling-unit-input" value={pollingUnit} onChangeText={setPollingUnit} placeholder="e.g. PU-04 / Central Primary School" placeholderTextColor={colors.mutedForeground} style={[styles.input, { backgroundColor: colors.card, borderColor: colors.input, color: colors.foreground }]} />
       </View>
@@ -89,7 +102,7 @@ export default function StaffScreen() {
         <View style={[styles.countCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {numberFields.map((field, index) => (
             <View key={field.key} style={[styles.countRow, index < numberFields.length - 1 ? { borderBottomColor: colors.border, borderBottomWidth: 1 } : null]}>
-              <View style={styles.countCopy}><Text style={[styles.partyLabel, { color: colors.foreground }]}>{field.label}</Text><Text style={[styles.partyHint, { color: colors.mutedForeground }]}>{field.hint}</Text></View>
+              <View style={styles.countCopy}><Text style={[styles.partyLabel, { color: colors.foreground }]}>{field.label}</Text><Text style={[styles.partyHint, { color: colors.mutedForeground }]}>{field.hint}</Text>{field.key === 'adc' ? <Image source={require('../assets/images/adc-reference.jpg')} style={styles.adcReference} resizeMode="contain" /> : null}</View>
               <TextInput testID={`count-${field.key}`} value={counts[field.key]} onChangeText={(value) => setCounts((current) => ({ ...current, [field.key]: value.replace(/[^0-9]/g, '') }))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.mutedForeground} style={[styles.numberInput, { backgroundColor: colors.background, borderColor: colors.input, color: colors.foreground }]} />
             </View>
           ))}
@@ -121,11 +134,15 @@ const styles = StyleSheet.create({
   section: { marginTop: 28 },
   label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, marginBottom: 11 },
   input: { height: 54, borderWidth: 1, borderRadius: 14, paddingHorizontal: 15, fontFamily: 'Inter_500Medium', fontSize: 15 },
+  select: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 0 },
+  options: { borderWidth: 1, borderRadius: 14, marginTop: 7, overflow: 'hidden' },
+  option: { minHeight: 45, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 11 },
   countHint: { fontFamily: 'Inter_400Regular', fontSize: 12 },
   countCard: { borderRadius: 17, borderWidth: 1, paddingHorizontal: 15 },
   countRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   countCopy: { flex: 1 },
+  adcReference: { width: 52, height: 26, marginTop: 5, borderRadius: 4 },
   partyLabel: { fontFamily: 'Inter_700Bold', fontSize: 16 },
   partyHint: { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 4 },
   numberInput: { width: 72, height: 44, borderWidth: 1, borderRadius: 12, textAlign: 'center', fontFamily: 'Inter_700Bold', fontSize: 18 },
