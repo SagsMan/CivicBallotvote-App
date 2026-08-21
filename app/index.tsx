@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +20,7 @@ export default function AccessScreen() {
   const insets = useSafeAreaInsets();
   const [role, setRole] = useState<Role>('staff');
   const [busy, setBusy] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(0);
 
   const onboardingSlides = [
@@ -30,6 +31,11 @@ export default function AccessScreen() {
     { image: require('@/assets/images/onboarding-ballot.png'), eyebrow: 'ACCOUNTABILITY FIRST', title: 'Keep every detail.', copy: 'Each submission is recorded with its polling unit, staff ID, totals, and evidence.' },
   ];
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
+
   const continueToRole = () => {
     setBusy(true);
     setTimeout(() => {
@@ -37,6 +43,14 @@ export default function AccessScreen() {
       router.push({ pathname: role === 'staff' ? '/staff' : '/admin', params: { staffId: role === 'staff' ? 'STF-DEMO01' : 'admin' } });
     }, 250);
   };
+
+  if (showSplash) {
+    return (
+      <View style={[styles.splashScreen, { backgroundColor: '#ffffff' }]}>
+        <Image source={require('@/assets/images/inec-splash.jpeg')} style={styles.splashImage} resizeMode="contain" />
+      </View>
+    );
+  }
 
   if (onboardingStep < onboardingSlides.length) {
     const slide = onboardingSlides[onboardingStep];
@@ -133,6 +147,8 @@ export default function AccessScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: 22 },
   onboardingScreen: { flex: 1, paddingHorizontal: 22 },
+  splashScreen: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  splashImage: { width: '100%', height: '100%' },
   onboardingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   skip: { fontFamily: 'Inter_500Medium', fontSize: 13 },
   onboardingBody: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 10 },
