@@ -4,7 +4,7 @@
     "slug": "civicballot",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/inec-splash.jpeg",
     "scheme": "civicballot",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -18,7 +18,7 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/inec-splash.jpeg"
     },
     "plugins": [
       [
