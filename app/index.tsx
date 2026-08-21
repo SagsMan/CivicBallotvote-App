@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -31,6 +31,11 @@ export default function AccessScreen() {
     { image: require('@/assets/images/onboarding-ballot.png'), eyebrow: 'ACCOUNTABILITY FIRST', title: 'Keep every detail.', copy: 'Each submission is recorded with its polling unit, staff ID, totals, and evidence.' },
   ];
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const continueToRole = () => {
     setBusy(true);
     setTimeout(() => {
@@ -41,9 +46,9 @@ export default function AccessScreen() {
 
   if (showSplash) {
     return (
-      <Pressable onPress={() => setShowSplash(false)} style={[styles.splashScreen, { backgroundColor: '#ffffff' }]}>
+      <View style={[styles.splashScreen, { backgroundColor: '#ffffff' }]}>
         <Image source={require('@/assets/images/inec-splash.jpeg')} style={styles.splashImage} resizeMode="contain" />
-      </Pressable>
+      </View>
     );
   }
 
